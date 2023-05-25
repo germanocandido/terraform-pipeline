@@ -1,0 +1,48 @@
+Stages:
+  - validate
+  - plan
+  - apply
+  - destroy
+
+.base:
+  image:
+    name: hashicorp/terraform
+    entrypoint: [""]
+  befofe_script:
+    - terraform init
+
+validade:
+  extends: .base
+  stage: validate
+  script:
+    - terraform validate
+
+plan:
+  extends: .base
+  stage: plan
+  script:
+    - terraform plan -out=plan.out
+  cache:
+    key: plan
+    policy: push
+    paths:
+      - plan.out
+
+apply:
+  extends: .base
+  stage: apply
+  script:
+    - terraform apply plan.out
+  cache:
+    key: plan
+    policy: pull
+    paths:
+      -plan.out
+  when: manual
+
+destroy:
+  extends: .base
+  stage: destroy
+  script:
+    - terraform destroy -auto-approve
+    when: manual
